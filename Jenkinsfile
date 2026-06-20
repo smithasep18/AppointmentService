@@ -76,7 +76,7 @@ pipeline {
 
   post {
     success {
-      echo "Docker image pushed: ${params.ECR_REGISTRY}/${env.APP_NAME}:${params.IMAGE_TAG}"
+      echo "Docker image pushed: ${params.DOCKER_REGISTRY}:${params.IMAGE_TAG}"
     }
     failure {
       echo 'Pipeline failed; please check the Jenkins console output.'
