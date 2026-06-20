@@ -28,7 +28,12 @@ pipeline {
 
           cleanWs()
           dir('source') {
-            git branch: params.BRANCH, url: params.REPO_URL
+            echo "Cloning repository ${params.REPO_URL} branch ${params.BRANCH}"
+            checkout([
+              $class: 'GitSCM',
+              branches: [[name: params.BRANCH]],
+              userRemoteConfigs: [[url: params.REPO_URL]]
+            ])
           }
         }
       }
