@@ -12,10 +12,9 @@ pipeline {
   parameters {
     string(name: 'REPO_URL', defaultValue: 'https://github.com/smithasep18/AppointmentService.git', description: 'Git repository URL to clone')
     string(name: 'BRANCH', defaultValue: 'main', description: 'Branch name to clone')
-    string(name: 'ECR_REGISTRY', defaultValue: '', description: 'ECR registry URI, e.g. 123456789012.dkr.ecr.us-east-1.amazonaws.com')
+    string(name: 'DOCKER_REGISTRY', defaultValue: 'smitha18/appointmentservice', description: 'Docker Hub repository name (e.g. smitha18/appointmentservice)')
     string(name: 'IMAGE_TAG', defaultValue: "${env.BUILD_NUMBER}", description: 'Docker image tag')
-    string(name: 'AWS_REGION', defaultValue: 'us-east-1', description: 'AWS region for ECR')
-    string(name: 'AWS_CREDENTIALS_ID', defaultValue: '', description: 'Jenkins AWS credentials ID')
+    string(name: 'DOCKER_CREDENTIALS_ID', defaultValue: 'docker-hub', description: 'Jenkins credentials ID for Docker Hub login')
   }
 
   stages {
@@ -42,10 +41,10 @@ pipeline {
     stage('Build') {
       steps {
         script {
-          if (!params.ECR_REGISTRY?.trim()) {
-            error 'ECR_REGISTRY is required to build the image. Set the registry URI before running the pipeline.'
+          if (!params.DOCKER_REGISTRY?.trim()) {
+            error 'DOCKER_REGISTRY is required to build the image. Set the Docker Hub repository before running the pipeline.'
           }
-          def imageName = "${params.ECR_REGISTRY}/${env.APP_NAME}:${params.IMAGE_TAG}"
+          def imageName = "${params.DOCKER_REGISTRY}:${params.IMAGE_TAG}"
           dir('source') {
             sh "docker build -t ${imageName} ."
           }
@@ -56,19 +55,19 @@ pipeline {
     stage('Push') {
       steps {
         script {
-          if (!params.ECR_REGISTRY?.trim()) {
-            error 'ECR_REGISTRY is required to push the image.'
+          if (!params.DOCKER_REGISTRY?.trim()) {
+            error 'DOCKER_REGISTRY is required to push the image.'
           }
-          if (!params.AWS_CREDENTIALS_ID?.trim()) {
-            error 'AWS_CREDENTIALS_ID is required for ECR login.'
+          if (!params.DOCKER_CREDENTIALS_ID?.trim()) {
+            error 'DOCKER_CREDENTIALS_ID is required for Docker Hub login.'
           }
 
-          def ecrHost = params.ECR_REGISTRY.split('/')[0]
-          def imageName = "${params.ECR_REGISTRY}/${env.APP_NAME}:${params.IMAGE_TAG}"
+          def imageName = "${params.DOCKER_REGISTRY}:${params.IMAGE_TAG}"
 
-          withCredentials([usernamePassword(credentialsId: params.AWS_CREDENTIALS_ID, usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
-            sh "aws ecr get-login-password --region ${params.AWS_REGION} | docker login --username AWS --password-stdin ${ecrHost}"
+          withCredentials([usernamePassword(credentialsId: params.DOCKER_CREDENTIALS_ID, usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+            sh "echo $DOCKER_PASS | docker login --username $DOCKER_USER --password-stdin"
             sh "docker push ${imageName}"
+            sh "docker logout"
           }
         }
       }
