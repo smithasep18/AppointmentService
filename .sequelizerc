@@ -1,0 +1,2 @@
+.sequelizerc
+path="./src/config/sequelize-config.js"
