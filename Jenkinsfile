@@ -10,7 +10,7 @@ pipeline {
   }
 
   parameters {
-    string(name: 'REPO_URL', defaultValue: '', description: 'Git repository URL to clone')
+    string(name: 'REPO_URL', defaultValue: 'https://github.com/smithasep18/AppointmentService.git', description: 'Git repository URL to clone')
     string(name: 'BRANCH', defaultValue: 'main', description: 'Branch name to clone')
     string(name: 'ECR_REGISTRY', defaultValue: '', description: 'ECR registry URI, e.g. 123456789012.dkr.ecr.us-east-1.amazonaws.com')
     string(name: 'IMAGE_TAG', defaultValue: "${env.BUILD_NUMBER}", description: 'Docker image tag')
