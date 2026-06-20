@@ -40,17 +40,8 @@ pipeline {
     }
 
     stage('Build') {
-      agent {
-        docker {
-          image 'docker:24.0.1'
-          args '-v /var/run/docker.sock:/var/run/docker.sock'
-        }
-      }
       steps {
         script {
-          if (!params.ECR_REGISTRY?.trim()) {
-            error 'ECR_REGISTRY is required to build the image.'
-          }
           def imageName = "${params.ECR_REGISTRY}/${env.APP_NAME}:${params.IMAGE_TAG}"
           dir('source') {
             sh "docker build -t ${imageName} ."
