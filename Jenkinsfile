@@ -42,6 +42,9 @@ pipeline {
     stage('Build') {
       steps {
         script {
+          if (!params.ECR_REGISTRY?.trim()) {
+            error 'ECR_REGISTRY is required to build the image. Set the registry URI before running the pipeline.'
+          }
           def imageName = "${params.ECR_REGISTRY}/${env.APP_NAME}:${params.IMAGE_TAG}"
           dir('source') {
             sh "docker build -t ${imageName} ."
